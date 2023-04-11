@@ -1,5 +1,7 @@
+import { useIsConnected } from '@/contexts/Beacon'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import { useRouter } from 'next/router'
+import React, { useEffect, useState } from 'react'
 
 const ntfs = [
   {
@@ -12,10 +14,17 @@ const ntfs = [
 
 const Home = () => {
   const [selectedNFT, setSelectedNFT] = useState<null | string>(null)
-
+  const isConnected = useIsConnected()()
+  const router = useRouter()
   const smallCardOnClickHandler = (addr: string) => () => {
     setSelectedNFT(addr)
   }
+
+	useEffect(()=> {
+		if (!isConnected) {
+      router.push('/')
+    }
+	}, [isConnected, router])
   return (
     <div className="bg-[#F7F9FB] font-dm-sans">
       <div className="max-w-sm mx-auto w-full flex flex-col px-3 py-2 h-screen">
