@@ -55,7 +55,7 @@ const useFetchNFTs = () => {
   useEffect(() => {
     const fetchNFTs = async () => {
       if (!userAddr) return
-      const url = new URL('https://api.ghostnet.tzkt.io/v1/tokens/balances')
+      const url = new URL(process.env.NEXT_PUBLIC_INDEXER ?? 'https://api.ghostnet.tzkt.io/v1/tokens/balances')
       url.searchParams.set('account', userAddr)
       url.searchParams.set('token.contract', contractAddr)
       url.searchParams.set('token.metadata.displayUri.null', 'false')
@@ -67,7 +67,7 @@ const useFetchNFTs = () => {
 					name: item.token.metadata.name,
 					creator: item.token.metadata.creators,
 					description: item.token.metadata.description,
-					img: item.token.metadata.displayUri.replace('ipfs://', 'https://cloudflare-ipfs.com/ipfs/')
+					img: item.token.metadata.displayUri.replace('ipfs://', process.env.NEXT_PUBLIC_IPFS_ENDPOINT ?? 'https://cloudflare-ipfs.com/ipfs/')
 				})
 			)
 			setNftList(formatted)
