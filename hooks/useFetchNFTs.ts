@@ -48,10 +48,34 @@ export interface Account {
   address: string
 }
 
+export interface QRCode_res {
+  success: boolean
+  response: string
+}
+
 const useFetchNFTs = () => {
-  const userAddr = useWalletAddress()
+  const userAddr = useWalletAddress() ?? ''
   const contractAddr = useContractAddress()
   const [nftList, setNftList] = useState<INFT[] | null>(null)
+  const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT ?? 'http://localhost:8000'
+  const generate = async (tokenId: string) => {
+    const body = JSON.stringify({
+      address: userAddr,
+      tokenId
+    })
+    const req = new Request(endpoint + '/qr/generate', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: body
+    })
+    const res = await fetch(req)
+    if (!res.ok) throw new Error('Cannot connect backend')
+    const res_body = (await res.json()) as QRCode_res
+    return res_body.response
+  }
+
   useEffect(() => {
     const fetchNFTs = async () => {
       if (!userAddr) return
@@ -75,7 +99,7 @@ const useFetchNFTs = () => {
     fetchNFTs().catch(console.log)
   }, [])
 
-  return nftList
+  return { nftList, generate }
 }
 
 export default useFetchNFTs

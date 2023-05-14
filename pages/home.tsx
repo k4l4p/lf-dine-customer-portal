@@ -1,4 +1,4 @@
-import { useIsConnected } from '@/contexts/Beacon'
+import { useDisconnect, useIsConnected } from '@/contexts/Beacon'
 import { useContract } from '@/contexts/Contract'
 import { useTezosToolkit } from '@/contexts/Taquito'
 import useFetchNFTs, { INFT } from '@/hooks/useFetchNFTs'
@@ -9,8 +9,9 @@ import React, { useEffect, useState } from 'react'
 const Home = () => {
   const [selectedNFT, setSelectedNFT] = useState<null | INFT>(null)
   const isConnected = useIsConnected()()
+  const disconnect = useDisconnect()
   const router = useRouter()
-  const nftList = useFetchNFTs()
+  const { nftList } = useFetchNFTs()
   const smallCardOnClickHandler = (addr: INFT) => () => {
     setSelectedNFT(addr)
   }
@@ -25,8 +26,12 @@ const Home = () => {
     }
     return (
       <>
-        <div className="flex justify-center py-5">
+        <div className="flex justify-center py-5 relative">
           <Image src={'/logo.svg'} alt="LFDINE" width={102} height={29} />
+          <button
+            onClick={() => {disconnect()}}
+            className='rounded-md px-2 bg-red-500 text-white absolute right-0 inset-y-3 text-sm'
+          >Disconnect</button>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {nftList &&
@@ -92,14 +97,18 @@ const SmallCard = ({
   </button>
 )
 
-const DetailPage = ({ nft, clear }: { nft: INFT, clear: () => void }) => {
+const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
+  const [isLoading, setIsLoading] = useState(true)
+  const [qrCode, setQrCode] = useState<null | string>(null)
+  const { generate } = useFetchNFTs()
   return (
     <>
       <div className="relative flex justify-center font-bold text-lg leading-5">
         <div className="absolute inset-y-0 left-0 flex items-center">
-          <button 
-          onClick={clear}
-          className="rounded-full bg-white h-8 w-8 inset-y-0 flex justify-center items-center">
+          <button
+            onClick={clear}
+            className="rounded-full bg-white h-8 w-8 inset-y-0 flex justify-center items-center"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -136,7 +145,7 @@ const DetailPage = ({ nft, clear }: { nft: INFT, clear: () => void }) => {
                 <Image src="/tezos.svg" alt="tezos" width={15} height={18} />
               </div>
               <h4 className="text-[#0D61FF] font-bold text-xs leading-3">
-                {0.25} XTZ
+                {'N/A'} XTZ
               </h4>
             </div>
           </div>
@@ -144,9 +153,22 @@ const DetailPage = ({ nft, clear }: { nft: INFT, clear: () => void }) => {
             <h4 className="font-bold leading-5">Description</h4>
             <p className="font-medium text-sm leading-5">{nft.description}</p>
           </div>
-          <button className="bg-[#3D00B7] rounded-2xl py-4 flex justify-center w-full text-white font-semibold text-sm leading-4">
-            Redeem
-          </button>
+          {qrCode ? (
+            <div className="relative h-400 w-full">
+              <Image alt="nft" src={qrCode} fill></Image>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                generate(nft.id).then((code) => {
+                  setQrCode(code)
+                }).catch(console.log)
+              }}
+              className="bg-[#3D00B7] rounded-2xl py-4 flex justify-center w-full text-white font-semibold text-sm leading-4"
+            >
+              Redeem
+            </button>
+          )}
         </div>
       </div>
     </>
