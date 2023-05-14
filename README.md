@@ -1,4 +1,4 @@
-# LFDINE NFT minting portal
+# LFDINE Customer portal
 
 1. Copy `.env.example` and rename to `.env.[NODE_ENV]`<br/>
 *P.S if `NODE_ENV` is not specified, default loading `.env.local`* 
