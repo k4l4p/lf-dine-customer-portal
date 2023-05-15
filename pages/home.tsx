@@ -29,12 +29,16 @@ const Home = () => {
         <div className="flex justify-center py-5 relative">
           <Image src={'/logo.svg'} alt="LFDINE" width={102} height={29} />
           <button
-            onClick={() => {disconnect()}}
-            className='rounded-md px-2 bg-red-500 text-white absolute right-0 inset-y-3 text-sm'
-          >Disconnect</button>
+            onClick={() => {
+              disconnect()
+            }}
+            className="rounded-md px-2 bg-red-500 text-white absolute right-0 inset-y-3 text-sm"
+          >
+            Disconnect
+          </button>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
-          {nftList &&
+          {nftList ? (
             nftList.map((item, idx) => (
               <SmallCard
                 key={idx}
@@ -43,7 +47,39 @@ const Home = () => {
                 price={0.25}
                 onclick={smallCardOnClickHandler(item)}
               />
-            ))}
+            ))
+          ) : (
+            <div className="col-span-2 h-20 flex flex-col justify-center items-center">
+              <svg
+                className='h-full'
+                version="1.1"
+                id="L9"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                x="0px"
+                y="0px"
+                viewBox="0 0 100 100"
+                enable-background="new 0 0 0 0"
+                xmlSpace="preserve"
+              >
+                <path
+                  fill="#3D00B7"
+                  d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="rotate"
+                    dur="1s"
+                    from="0 50 50"
+                    to="360 50 50"
+                    repeatCount="indefinite"
+                  />
+                </path>
+              </svg>
+              <p className='w-fit'>Loading...</p>
+            </div>
+          )}
         </div>
       </>
     )
@@ -98,7 +134,7 @@ const SmallCard = ({
 )
 
 const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [qrCode, setQrCode] = useState<null | string>(null)
   const { generate } = useFetchNFTs()
   return (
@@ -154,19 +190,31 @@ const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
             <p className="font-medium text-sm leading-5">{nft.description}</p>
           </div>
           {qrCode ? (
-            <div className="relative h-400 w-full">
-              <Image alt="nft" src={qrCode} fill></Image>
+            <div className="relative h-[200px] w-full">
+              <Image
+                className="object-contain"
+                alt="nft"
+                src={qrCode}
+                fill
+              ></Image>
             </div>
           ) : (
             <button
               onClick={() => {
-                generate(nft.id).then((code) => {
-                  setQrCode(code)
-                }).catch(console.log)
+                setIsLoading(true)
+                generate(nft.id)
+                  .then((code) => {
+                    setIsLoading(false)
+                    setQrCode(code)
+                  })
+                  .catch((err) => {
+                    console.log(err)
+                    setIsLoading(false)
+                  })
               }}
               className="bg-[#3D00B7] rounded-2xl py-4 flex justify-center w-full text-white font-semibold text-sm leading-4"
             >
-              Redeem
+              {isLoading ? 'Loading...' : 'Redeem'}
             </button>
           )}
         </div>

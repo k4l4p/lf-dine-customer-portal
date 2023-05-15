@@ -3,11 +3,16 @@ import { useContractAddress } from '@/contexts/Settings'
 import React, { useEffect, useState } from 'react'
 
 export interface INFT {
-	id: string
-	name: string
-	creator: string[]
-	img: string
-	description: string
+  id: string
+  name: string
+  creator: string[]
+  img: string
+  description: string
+}
+
+export interface Res {
+  success: boolean
+  response: NFTres[]
 }
 
 export interface NFTres {
@@ -28,7 +33,7 @@ export interface Token {
   tokenId: string
   standard: string
   totalSupply: string
-  metadata: Metadata
+  metadata: string
 }
 
 export interface Metadata {
@@ -57,19 +62,22 @@ const useFetchNFTs = () => {
   const userAddr = useWalletAddress() ?? ''
   const contractAddr = useContractAddress()
   const [nftList, setNftList] = useState<INFT[] | null>(null)
-  const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT ?? 'http://localhost:8000'
+  const endpoint =
+    process.env.NEXT_PUBLIC_API_ENDPOINT ?? 'http://localhost:8000'
+  const ipfsEndpoint =
+    process.env.NEXT_PUBLIC_IPFS_ENDPOINT ?? 'https://cloudflare-ipfs.com/ipfs/'
   const generate = async (id: string) => {
     const tokenId = Number.parseInt(id)
     const body = JSON.stringify({
       address: userAddr,
-      tokenId
+      tokenId,
     })
     const req = new Request(endpoint + '/qr/generate', {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       method: 'POST',
-      body: body
+      body: body,
     })
     const res = await fetch(req)
     if (!res.ok) throw new Error('Cannot connect backend')
@@ -80,22 +88,35 @@ const useFetchNFTs = () => {
   useEffect(() => {
     const fetchNFTs = async () => {
       if (!userAddr) return
-      const url = new URL(process.env.NEXT_PUBLIC_INDEXER ?? 'https://api.ghostnet.tzkt.io/v1/tokens/balances')
-      url.searchParams.set('account', userAddr)
-      url.searchParams.set('token.contract', contractAddr)
-      url.searchParams.set('token.metadata.displayUri.null', 'false')
-      const res = await fetch(url)
+      const url = `${endpoint}/user/listNft?address=${userAddr}`
+      const res = await fetch(url, {
+        headers: {
+          'Content-Type': ' application/json',
+        },
+      })
+
       if (!res.ok) throw new Error('Network Error')
-      const nfts = await res.json() as NFTres[]
-      const formatted: INFT[] = nfts.map(item =>  ({
-					id: item.token.tokenId,
-					name: item.token.metadata.name,
-					creator: item.token.metadata.creators,
-					description: item.token.metadata.description,
-					img: item.token.metadata.displayUri.replace('ipfs://', process.env.NEXT_PUBLIC_IPFS_ENDPOINT ?? 'https://cloudflare-ipfs.com/ipfs/')
-				})
-			)
-			setNftList(formatted)
+      const nfts = (await res.json()) as Res
+      const wrapper = nfts.response.map(async (item) => {
+        const res = await fetch(
+          item.token.metadata.replace('ipfs://', ipfsEndpoint)
+        )
+        if (!res.ok) return null
+        const body = (await res.json()) as Metadata
+        return body
+      })
+      const metaRes = (await Promise.all(wrapper)) as Array<Metadata | null>
+      const formatted: INFT[] = metaRes
+        .filter((item): item is Metadata => item !== null)
+        .map((item, idx) => ({
+          id: nfts.response[idx].token.tokenId,
+          name: item.name,
+          creator: item.creators,
+          description: item.description,
+          img: item.displayUri.replace('ipfs://', ipfsEndpoint),
+        }))
+      console.log(formatted)
+      setNftList(formatted)
     }
     fetchNFTs().catch(console.log)
   }, [])
