@@ -29,9 +29,13 @@ const Home = () => {
         <div className="flex justify-center py-5 relative">
           <Image src={'/logo.svg'} alt="LFDINE" width={102} height={29} />
           <button
-            onClick={() => {disconnect()}}
-            className='rounded-md px-2 bg-red-500 text-white absolute right-0 inset-y-3 text-sm'
-          >Disconnect</button>
+            onClick={() => {
+              disconnect()
+            }}
+            className="rounded-md px-2 bg-red-500 text-white absolute right-0 inset-y-3 text-sm"
+          >
+            Disconnect
+          </button>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {nftList &&
@@ -98,7 +102,7 @@ const SmallCard = ({
 )
 
 const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [qrCode, setQrCode] = useState<null | string>(null)
   const { generate } = useFetchNFTs()
   return (
@@ -154,19 +158,31 @@ const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
             <p className="font-medium text-sm leading-5">{nft.description}</p>
           </div>
           {qrCode ? (
-            <div className="relative h-400 w-full">
-              <Image alt="nft" src={qrCode} fill></Image>
+            <div className="relative h-[200px] w-full">
+              <Image
+                className="object-contain"
+                alt="nft"
+                src={qrCode}
+                fill
+              ></Image>
             </div>
           ) : (
             <button
               onClick={() => {
-                generate(nft.id).then((code) => {
-                  setQrCode(code)
-                }).catch(console.log)
+                setIsLoading(true)
+                generate(nft.id)
+                  .then((code) => {
+                    setIsLoading(false)
+                    setQrCode(code)
+                  })
+                  .catch((err) => {
+                    console.log(err)
+                    setIsLoading(false)
+                  })
               }}
               className="bg-[#3D00B7] rounded-2xl py-4 flex justify-center w-full text-white font-semibold text-sm leading-4"
             >
-              Redeem
+              {isLoading ? 'Loading...' : 'Redeem'}
             </button>
           )}
         </div>
