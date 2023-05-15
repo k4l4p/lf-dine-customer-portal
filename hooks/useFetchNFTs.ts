@@ -58,7 +58,8 @@ const useFetchNFTs = () => {
   const contractAddr = useContractAddress()
   const [nftList, setNftList] = useState<INFT[] | null>(null)
   const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT ?? 'http://localhost:8000'
-  const generate = async (tokenId: string) => {
+  const generate = async (id: string) => {
+    const tokenId = Number.parseInt(id)
     const body = JSON.stringify({
       address: userAddr,
       tokenId
