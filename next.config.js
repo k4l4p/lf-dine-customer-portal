@@ -10,6 +10,12 @@ const nextConfig = {
         port: '',
         pathname: '/ipfs/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lfdine.mypinata.cloud',
+        port: '',
+        pathname: '/ipfs/**',
+      },
     ],
   },
 }

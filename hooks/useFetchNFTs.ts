@@ -94,29 +94,28 @@ const useFetchNFTs = () => {
           'Content-Type': ' application/json',
         },
       })
+
       if (!res.ok) throw new Error('Network Error')
       const nfts = (await res.json()) as Res
-      const wrapper = nfts.response.map((item) =>
-        fetch(item.token.metadata.replace('ipfs://', ipfsEndpoint)).then(
-          (res) => {
-            if (!res.ok) {
-              throw new Error(
-                'Error when fetching metadata through ipfs endpoint'
-              )
-            }
-            return res.json()
-          }
+      const wrapper = nfts.response.map(async (item) => {
+        const res = await fetch(
+          item.token.metadata.replace('ipfs://', ipfsEndpoint)
         )
-      )
-      const metaRes = await Promise.all(wrapper) as Metadata[]
-      const formatted: INFT[] = metaRes.map((item, idx) =>  ({
-        id: nfts.response[idx].token.tokenId,
-        name: item.name,
-        creator: item.creators,
-        description: item.description,
-        img: item.displayUri.replace('ipfs://', ipfsEndpoint)
+        if (!res.ok) return null
+        const body = (await res.json()) as Metadata
+        return body
       })
-    )
+      const metaRes = (await Promise.all(wrapper)) as Array<Metadata | null>
+      const formatted: INFT[] = metaRes
+        .filter((item): item is Metadata => item !== null)
+        .map((item, idx) => ({
+          id: nfts.response[idx].token.tokenId,
+          name: item.name,
+          creator: item.creators,
+          description: item.description,
+          img: item.displayUri.replace('ipfs://', ipfsEndpoint),
+        }))
+      console.log(formatted)
       setNftList(formatted)
     }
     fetchNFTs().catch(console.log)
