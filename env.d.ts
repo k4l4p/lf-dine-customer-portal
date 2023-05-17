@@ -4,6 +4,7 @@ declare global {
       NEXT_PUBLIC_CONTRACT_ADDRESS: string
       NEXT_PUBLIC_IPFS_ENDPOINT: string
       NEXT_PUBLIC_API_ENDPOINT: string
+      NEXT_PUBLIC_ENV: 'PROD' | 'DEV'
     }
   }
 }

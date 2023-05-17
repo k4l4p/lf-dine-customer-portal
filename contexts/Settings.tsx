@@ -12,8 +12,14 @@ export const [
   () => {
     const [settings] = useState({
       app_name: 'LFDINE Customer Portal',
-      endpoint: 'https://ghostnet.ecadinfra.com',
-      network: NetworkType.GHOSTNET,
+      endpoint:
+				process.env.NEXT_PUBLIC_ENV === "DEV"
+					? "https://ghostnet.ecadinfra.com"
+					: "https://mainnet.api.tez.ie",
+			network:
+				process.env.NEXT_PUBLIC_ENV === "DEV"
+					? NetworkType.GHOSTNET
+					: NetworkType.MAINNET,
       contract: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
         ? process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
         : 'KT1H9kCFuVDCA3kCXgStentobimFVeitbq8A',
