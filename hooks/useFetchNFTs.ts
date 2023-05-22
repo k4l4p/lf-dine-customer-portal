@@ -80,8 +80,10 @@ const useFetchNFTs = () => {
       body: body,
     })
     const res = await fetch(req)
-    if (!res.ok) throw new Error('Cannot connect backend')
     const res_body = (await res.json()) as QRCode_res
+    if (!res.ok) throw new Error(
+      res_body?.response ?? 'Network Error'
+      )
     return res_body.response
   }
 
