@@ -3,6 +3,7 @@ import { useContract } from "@/contexts/Contract"
 import { useTezosToolkit } from "@/contexts/Taquito"
 import useFetchNFTs, { INFT } from "@/hooks/useFetchNFTs"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/router"
 import React, { useEffect, useState } from "react"
 
@@ -39,15 +40,59 @@ const Home = () => {
 				</div>
 				<div className="grid grid-cols-2 gap-x-4 gap-y-8">
 					{nftList ? (
-						nftList.map((item, idx) => (
-							<SmallCard
-								key={idx}
-								img={item.img}
-								name={item.name}
-								price={0.25}
-								onclick={smallCardOnClickHandler(item)}
-							/>
-						))
+						nftList.length > 0 ? (
+							nftList.map((item, idx) => (
+								<SmallCard
+									key={idx}
+									img={item.img}
+									name={item.name}
+									price={0.25}
+									onclick={smallCardOnClickHandler(item)}
+								/>
+							))
+						) : (
+							<div className="flex flex-col gap-3 items-center col-span-2">
+								<Image
+									alt="participate now!"
+									src={"/sad.png"}
+									height={80}
+									width={80}
+								/>
+								<h3 className="text-lg font-semibold">
+									Currently you do not own any valid NFTs.
+								</h3>
+								<p className="text-sm text-center">
+									Please participate in one of our lucky draw for a chance to
+									win a LFDine NFT.🥳
+								</p>
+								<div className="flex flex-col gap-2 items-center">
+									<Link
+										target={"_blank"}
+										rel={"noreferrer"}
+										className="text-gray-600 text-sm underline"
+										href={"https://lfdine.com/poc/thepizzaproject"}
+									>
+										Pizza Project
+									</Link>
+									<Link
+										target={"_blank"}
+										rel={"noreferrer"}
+										className="text-gray-600 text-sm underline"
+										href={"https://lfdine.com/poc/woodlands"}
+									>
+										Woodlands
+									</Link>
+									<Link
+										target={"_blank"}
+										rel={"noreferrer"}
+										className="text-gray-600 text-sm underline"
+										href={"https://lfdine.com/poc/mrmaki"}
+									>
+										Mr. Maki
+									</Link>
+								</div>
+							</div>
+						)
 					) : (
 						<div className="col-span-2 h-20 flex flex-col justify-center items-center">
 							<svg
@@ -192,7 +237,7 @@ const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
 						<p className="font-medium text-sm leading-5">{nft.description}</p>
 					</div>
 					{error ? (
-          <div className="text-center text-red-400">{error}</div>
+						<div className="text-center text-red-400">{error}</div>
 					) : qrCode ? (
 						<div className="relative h-[200px] w-full">
 							<Image
@@ -214,9 +259,9 @@ const DetailPage = ({ nft, clear }: { nft: INFT; clear: () => void }) => {
 									.catch((err) => {
 										console.log(err)
 										setError(() => {
-                      if (err instanceof Error) return err.message
-                      return 'Error occurs'
-                    })
+											if (err instanceof Error) return err.message
+											return "Error occurs"
+										})
 										setIsLoading(false)
 									})
 							}}
