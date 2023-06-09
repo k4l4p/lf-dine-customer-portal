@@ -47,6 +47,12 @@ export interface Metadata {
   thumbnailUri: string
   is_transferable: boolean
   shouldPreferSymbol: boolean
+  id: string
+}
+
+interface MetadataWrapper {
+  metadata: Metadata,
+  tokenId: string
 }
 
 export interface Account {
@@ -80,8 +86,10 @@ const useFetchNFTs = () => {
       body: body,
     })
     const res = await fetch(req)
-    if (!res.ok) throw new Error('Cannot connect backend')
     const res_body = (await res.json()) as QRCode_res
+    if (!res.ok) throw new Error(
+      res_body?.response ?? 'Network Error'
+      )
     return res_body.response
   }
 
@@ -97,25 +105,29 @@ const useFetchNFTs = () => {
 
       if (!res.ok) throw new Error('Network Error')
       const nfts = (await res.json()) as Res
+      console.log(nfts)
       const wrapper = nfts.response.map(async (item) => {
         const res = await fetch(
           item.token.metadata.replace('ipfs://', ipfsEndpoint)
         )
         if (!res.ok) return null
         const body = (await res.json()) as Metadata
-        return body
+        const ret: MetadataWrapper = {
+          metadata: body,
+          tokenId: item.token.tokenId
+        }
+        return ret
       })
-      const metaRes = (await Promise.all(wrapper)) as Array<Metadata | null>
+      const metaRes = (await Promise.all(wrapper)) as Array<MetadataWrapper | null>
       const formatted: INFT[] = metaRes
-        .filter((item): item is Metadata => item !== null)
+        .filter((item): item is MetadataWrapper => item !== null)
         .map((item, idx) => ({
-          id: nfts.response[idx].token.tokenId,
-          name: item.name,
-          creator: item.creators,
-          description: item.description,
-          img: item.displayUri.replace('ipfs://', ipfsEndpoint),
+          id: item.tokenId,
+          name: item.metadata.name,
+          creator: item.metadata.creators,
+          description: item.metadata.description,
+          img: item.metadata.displayUri.replace('ipfs://', ipfsEndpoint),
         }))
-      console.log(formatted)
       setNftList(formatted)
     }
     fetchNFTs().catch(console.log)

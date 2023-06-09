@@ -1,6 +1,6 @@
 # LFDINE Customer portal
 
-1. Copy `.env.example` and rename to `.env.[NODE_ENV]`<br/>
+1. Copy `.env.example`, rename to `.env.[NODE_ENV]`<br/>
 *P.S if `NODE_ENV` is not specified, default loading `.env.local`* 
 
 For vercel deployment, please refer to [this page](https://vercel.com/docs/concepts/projects/environment-variables?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) to set env. variables
